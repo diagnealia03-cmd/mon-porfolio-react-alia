@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Projet from './Projet'; // On importe le nouveau composant !
 
 export default function Dossier() {
     const [projets, setProjets] = useState([]);
 
-    // Récupération des données au chargement du composant
     useEffect(() => {
         fetchProjets();
     }, []);
@@ -18,6 +18,21 @@ export default function Dossier() {
         }
     };
 
+    // NOUVEAU : Fonction de suppression
+    const supprimerProjet = async (id) => {
+        // Demander confirmation avant de supprimer (bonne pratique)
+        if (window.confirm("Es-tu sûre de vouloir supprimer ce projet ?")) {
+            try {
+                // 1. Supprimer côté serveur (json-server)
+                await axios.delete(`http://localhost:3001/projets/${id}`);
+                // 2. Mettre à jour l'affichage côté React (en filtrant le projet supprimé)
+                setProjets(projets.filter((projet) => projet.id !== id));
+            } catch (error) {
+                console.error("Erreur lors de la suppression:", error);
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-violet-50 p-8">
             <header className="mb-10 text-center">
@@ -25,22 +40,22 @@ export default function Dossier() {
                 <p className="text-orange-600 font-medium">Développement & Innovation</p>
             </header>
 
-            <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6 border border-violet-100">
-                <div className="flex justify-between items-center mb-6">
+            <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 border border-violet-100">
+                <div className="flex justify-between items-center mb-8">
                     <h2 className="text-2xl font-semibold text-violet-700">Mes Projets</h2>
-                    {/* Le bouton AjouterProjet viendra ici plus tard */}
-                    <button className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <button className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl transition-colors font-medium shadow-sm">
                         + Nouveau Projet
                     </button>
                 </div>
 
-                {/* Liste temporaire pour tester */}
-                <div className="grid gap-4">
+                {/* NOUVEAU : On utilise une grille pour afficher les composants Projet */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {projets.map((projet) => (
-                        <div key={projet.id} className="p-4 bg-orange-50 rounded-lg border border-orange-100">
-                            <h3 className="font-bold text-violet-900">{projet.titre}</h3>
-                            <p className="text-slate-600 text-sm">{projet.description}</p>
-                        </div>
+                        <Projet
+                            key={projet.id}
+                            projet={projet}
+                            onDelete={supprimerProjet}
+                        />
                     ))}
                 </div>
             </div>
