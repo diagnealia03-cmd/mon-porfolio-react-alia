@@ -1,16 +1,24 @@
-export default function Projet({ projet, onDelete }) {
+export default function Projet({ projet, onDelete, onShowDetails }) {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-violet-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
-            {/* On affiche la première image de la liste */}
             <img
                 src={projet.images[0]}
                 alt={projet.titre}
                 className="w-full h-48 object-cover border-b border-violet-50"
             />
-            <div className="p-4 flex flex-col flex-grow justify-between">
-                <h3 className="font-bold text-violet-900 text-lg mb-4 text-center">
+            <div className="p-5 flex flex-col flex-grow justify-between">
+
+                {/* NOUVEAU : Le titre est maintenant une ancre cliquable */}
+                <a
+                    href="#"
+                    onClick={(e) => {
+                        e.preventDefault(); // Empêche la page de remonter en haut
+                        onShowDetails(projet);
+                    }}
+                    className="font-bold text-violet-900 text-lg mb-4 text-center hover:text-orange-500 hover:underline cursor-pointer block"
+                >
                     {projet.titre}
-                </h3>
+                </a>
 
                 <button
                     onClick={() => onDelete(projet.id)}

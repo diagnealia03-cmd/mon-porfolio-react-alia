@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Projet from './Projet';
-import AjouterProjet from './AjouterProjet'; // NOUVEAU IMPORT
+import AjouterProjet from './AjouterProjet';
+import DetaillerProjet from './DetaillerProjet'; // NOUVEL IMPORT
 
 export default function Dossier() {
     const [projets, setProjets] = useState([]);
-    const [afficherFormulaire, setAfficherFormulaire] = useState(false); // NOUVEAU STATE
+    const [afficherFormulaire, setAfficherFormulaire] = useState(false);
+    const [projetSelectionne, setProjetSelectionne] = useState(null); // NOUVEAU STATE
 
     useEffect(() => {
         fetchProjets();
@@ -16,7 +18,7 @@ export default function Dossier() {
             const response = await axios.get('http://localhost:3001/projets');
             setProjets(response.data);
         } catch (error) {
-            console.error("Erreur lors de la récupération des projets:", error);
+            console.error("Erreur lors de la récupération:", error);
         }
     };
 
@@ -26,24 +28,31 @@ export default function Dossier() {
                 await axios.delete(`http://localhost:3001/projets/${id}`);
                 setProjets(projets.filter((projet) => projet.id !== id));
             } catch (error) {
-                console.error("Erreur lors de la suppression:", error);
+                console.error("Erreur de suppression:", error);
             }
         }
     };
 
-    // NOUVELLE FONCTION : Ajouter un projet
     const ajouterNouveauProjet = async (nouveauProjet) => {
         try {
-            // json-server va automatiquement créer un ID unique !
             const response = await axios.post('http://localhost:3001/projets', nouveauProjet);
-
-            // On met à jour l'affichage en ajoutant le nouveau projet à la liste
             setProjets([...projets, response.data]);
-
-            // On cache le formulaire
             setAfficherFormulaire(false);
         } catch (error) {
-            console.error("Erreur lors de l'ajout du projet:", error);
+            console.error("Erreur d'ajout:", error);
+        }
+    };
+
+    // NOUVELLE FONCTION : Éditer un projet dans la DB (Requête PUT)
+    const modifierProjet = async (projetModifie) => {
+        try {
+            const response = await axios.put(`http://localhost:3001/projets/${projetModifie.id}`, projetModifie);
+            // On met à jour le projet dans notre liste React
+            setProjets(projets.map(p => p.id === projetModifie.id ? response.data : p));
+            // On met à jour le projet sélectionné pour que l'affichage se rafraîchisse
+            setProjetSelectionne(response.data);
+        } catch (error) {
+            console.error("Erreur de modification:", error);
         }
     };
 
@@ -54,11 +63,19 @@ export default function Dossier() {
                 <p className="text-orange-600 font-medium">Développement & Innovation</p>
             </header>
 
-            <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 border border-violet-100">
+            <div className="max-w-6xl mx-auto">
+                {/* SI UN PROJET EST SÉLECTIONNÉ : ON AFFICHE LES DÉTAILS */}
+                {projetSelectionne ? (
+                    <DetaillerProjet
+                        projet={projetSelectionne}
+                        onCancel={() => setProjetSelectionne(null)}
+                        onEdit={modifierProjet}
+                    />
+                ) : (
+                    {/* SINON : ON AFFICHE LA LISTE NORMALE */ }
+                    < div className="bg-white rounded-2xl shadow-lg p-8 border border-violet-100">
                 <div className="flex justify-between items-center mb-8">
                     <h2 className="text-2xl font-semibold text-violet-700">Mes Projets</h2>
-
-                    {/* Le bouton change de rôle selon si le formulaire est ouvert ou non */}
                     {!afficherFormulaire && (
                         <button
                             onClick={() => setAfficherFormulaire(true)}
@@ -69,7 +86,6 @@ export default function Dossier() {
                     )}
                 </div>
 
-                {/* Affichage conditionnel du composant AjouterProjet */}
                 {afficherFormulaire && (
                     <AjouterProjet
                         onAdd={ajouterNouveauProjet}
@@ -83,10 +99,14 @@ export default function Dossier() {
                             key={projet.id}
                             projet={projet}
                             onDelete={supprimerProjet}
+                            onShowDetails={setProjetSelectionne} // On passe la fonction ici !
                         />
                     ))}
                 </div>
             </div>
+        )}
         </div>
-    );
+    </div >
+  );
 }
+
