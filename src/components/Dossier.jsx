@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Projet from './Projet';
 import AjouterProjet from './AjouterProjet';
-import DetaillerProjet from './DetaillerProjet'; // NOUVEL IMPORT
+import DetaillerProjet from './DetaillerProjet';
 
 export default function Dossier() {
     const [projets, setProjets] = useState([]);
     const [afficherFormulaire, setAfficherFormulaire] = useState(false);
-    const [projetSelectionne, setProjetSelectionne] = useState(null); // NOUVEAU STATE
+    const [projetSelectionne, setProjetSelectionne] = useState(null);
 
     useEffect(() => {
         fetchProjets();
@@ -43,13 +43,10 @@ export default function Dossier() {
         }
     };
 
-    // NOUVELLE FONCTION : Éditer un projet dans la DB (Requête PUT)
     const modifierProjet = async (projetModifie) => {
         try {
             const response = await axios.put(`http://localhost:3001/projets/${projetModifie.id}`, projetModifie);
-            // On met à jour le projet dans notre liste React
             setProjets(projets.map(p => p.id === projetModifie.id ? response.data : p));
-            // On met à jour le projet sélectionné pour que l'affichage se rafraîchisse
             setProjetSelectionne(response.data);
         } catch (error) {
             console.error("Erreur de modification:", error);
@@ -58,13 +55,32 @@ export default function Dossier() {
 
     return (
         <div className="min-h-screen bg-violet-50 p-8">
-            <header className="mb-10 text-center">
-                <h1 className="text-4xl font-bold text-violet-800 mb-2">Mon Portfolio Alia</h1>
-                <p className="text-orange-600 font-medium">Développement & Innovation</p>
+            <header className="mb-12 text-center">
+                <h1 className="text-5xl font-extrabold text-violet-900 mb-4">Portfolio de Alia</h1>
+                <p className="text-orange-600 font-medium text-lg mb-6">Développement, Réseaux & Sécurité Informatique</p>
+
+                {/* Tes liens sociaux */}
+                <div className="flex justify-center gap-4">
+                    <a
+                        href="https://github.com/diagnealia03-cmd/mon-porfolio-react-alia"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm flex items-center gap-2"
+                    >
+                        Mon GitHub
+                    </a>
+                    <a
+                        href="https://www.linkedin.com/in/alia-diagne-29493a3b2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm flex items-center gap-2"
+                    >
+                        Mon LinkedIn
+                    </a>
+                </div>
             </header>
 
             <div className="max-w-6xl mx-auto">
-                {/* SI UN PROJET EST SÉLECTIONNÉ : ON AFFICHE LES DÉTAILS */}
                 {projetSelectionne ? (
                     <DetaillerProjet
                         projet={projetSelectionne}
@@ -72,41 +88,39 @@ export default function Dossier() {
                         onEdit={modifierProjet}
                     />
                 ) : (
-                    {/* SINON : ON AFFICHE LA LISTE NORMALE */ }
-                    < div className="bg-white rounded-2xl shadow-lg p-8 border border-violet-100">
-                <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-2xl font-semibold text-violet-700">Mes Projets</h2>
-                    {!afficherFormulaire && (
-                        <button
-                            onClick={() => setAfficherFormulaire(true)}
-                            className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl transition-colors font-medium shadow-sm"
-                        >
-                            + Nouveau Projet
-                        </button>
-                    )}
-                </div>
+                    <div className="bg-white rounded-2xl shadow-lg p-8 border border-violet-100">
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="text-2xl font-semibold text-violet-700">Mes Projets</h2>
+                            {!afficherFormulaire && (
+                                <button
+                                    onClick={() => setAfficherFormulaire(true)}
+                                    className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl transition-colors font-medium shadow-sm"
+                                >
+                                    + Nouveau Projet
+                                </button>
+                            )}
+                        </div>
 
-                {afficherFormulaire && (
-                    <AjouterProjet
-                        onAdd={ajouterNouveauProjet}
-                        onCancel={() => setAfficherFormulaire(false)}
-                    />
+                        {afficherFormulaire && (
+                            <AjouterProjet
+                                onAdd={ajouterNouveauProjet}
+                                onCancel={() => setAfficherFormulaire(false)}
+                            />
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {projets.map((projet) => (
+                                <Projet
+                                    key={projet.id}
+                                    projet={projet}
+                                    onDelete={supprimerProjet}
+                                    onShowDetails={setProjetSelectionne}
+                                />
+                            ))}
+                        </div>
+                    </div>
                 )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {projets.map((projet) => (
-                        <Projet
-                            key={projet.id}
-                            projet={projet}
-                            onDelete={supprimerProjet}
-                            onShowDetails={setProjetSelectionne} // On passe la fonction ici !
-                        />
-                    ))}
-                </div>
             </div>
-        )}
         </div>
-    </div >
-  );
+    );
 }
-
